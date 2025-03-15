@@ -91,13 +91,45 @@ Top 10 transactions per relative gas usage:
 
 For the same blocks, we used reth with SP1 zkVM to obtain the prover performance. We used AWS `g6e.2xlarge` machine with 1 GPU and 48GB GPU memory, 8CPU and 64GPU CPU memory. We used CUDA proving backend.
 
-We currently have not benchmarked using other proof systems due to time required to set up the backends and run the provers, but are planning with the following:
+We currently have not benchmarked using other proof systems due to time required to set up the backends and run the provers, but are planning with the following projects:
 - Risc0
 - Nexus
 - Valida
 - Pico
 - Zisk
 - Jolt
+
+## Precompiles in zkVMs
+
+In general, zkVMs compile the program into a target bytecode and then evaluate instructions one by one. This allows to prove arbitrary programs, but in case of fixed routines it is more efficient to prove the routine bytecode separately. This is implemented through zkVM precompiles, e.g. in [Risc0](https://dev.risczero.com/api/zkvm/precompiles) and [SP1](https://docs.succinct.xyz/docs/sp1/writing-programs/precompiles). In the programs, the zkVM precompiles are usually applied by patching the Rust crates which provide the primitives to be accelerated.
+
+In the proof tests we used zkVM precompiles which were available in SP1, i.e. `sha2-256`, `bigint`, `keccak`, `p256`, `bn254`, `bls12-381`.
+
+## Proof benchmarking
+
+For SP1, the prover reports the following time statistics:
+* setup time
+* proving time
+* compress time
+
+During benchmarking, we measured the full end-to-end running time. We normalize the running time against the total gas used in a block, as this allowed to compare the proving time over blocks with different gas usage.
+
+The proving performance percentiles are:
+| percentile | gas proven per ms |
+|------------|-------------------|
+| 0.05       | 51                |
+| 0.1        | 55                |
+| 0.5        | 64                |
+| 0.9        | 72                |
+| 0.95       | 76                |
+
+![Proving Performance Percentiles](hashcost-data/08-percentiles.png)
+
+The outlier blocks with very slow proving speed seem to call KZG verification precompile at `0x0a` or being small blocks. On the other hand, blocks which are very fast to prove seem to contain multiple contract creation transactions.
+
+## Hashing overhead during proving
+
+In initial tests, we patched [rsp](https://github.com/succinctlabs/rsp) to omit proving `keccak256` EVM opcode completely. The goal was to see how it would affect the block
 
 .. TODO:
 - how it is measured - right now we count the 32-byte words, but this doesn't apply to keccak which operates on 136 bytes per round
