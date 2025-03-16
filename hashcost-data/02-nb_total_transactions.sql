@@ -1,0 +1,1 @@
+select count(distinct transactionHash) as "number of transactions", SUM(gas) as "total gas used" from transactions;

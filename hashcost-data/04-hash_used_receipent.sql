@@ -1,0 +1,2 @@
+--select t."to" as "receipent", sum(s.dynamicGas)+sum(s.staticGas) as "hash gas used", SUM(t.gas) as "total gas used", s.hashType as "hash function" from transactions t join steps s on s.transactionHash=t.transactionHash group by t."to",s.hashType order by "hash gas used";
+select t."to" as "receipent", sum(s.dynamicGas)+sum(s.staticGas) as "hash gas used", SUM(t.gas) as "total gas used" from transactions t join steps s on s.transactionHash=t.transactionHash where t.failed=false group by t."to" order by "hash gas used";

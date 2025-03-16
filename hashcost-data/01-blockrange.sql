@@ -1,0 +1,1 @@
+select MIN(blockNumber) as "starting block", MAX(blockNumber) as "final block" from blocks where processingDone=true;
