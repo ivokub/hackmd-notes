@@ -9,8 +9,8 @@ JOIN
     transactions t 
 ON 
     s.transactionHash = t.transactionHash 
-WHERE
-    t.failed=false 
+-- WHERE
+--     t.failed=false 
 GROUP BY 
     s.transactionHash 
 ORDER BY

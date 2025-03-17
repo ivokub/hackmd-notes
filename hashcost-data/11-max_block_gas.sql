@@ -1,0 +1,1 @@
+select max(total_gas) from (select sum(gas) as total_gas from transactions group by blockNumber);
