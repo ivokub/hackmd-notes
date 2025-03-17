@@ -17,6 +17,8 @@ The proposed increases in EIP-7667 for now are:
 
 These proposed costs are based on [declared proving cost](https://notes.ethereum.org/@vbuterin/evm_vs_keccak_benchmarks), not particularly for actual usage in Ethereum. Here, we instead run zkVM prover on a set of Ethereum blocks to obtain the average proving runtime.
 
+There is alternative workstream which measures the native execution speed for different execution clients. See the [proposal](https://github.com/imapp-pl/gas-cost-estimator/blob/master/docs/gas-schedule-proposal.md).
+
 ## Hash function usage in Ethereum
 
 For the benchmarks, we looked at blocks from [21733089](https://etherscan.io/block/21733089) to [21733759](https://etherscan.io/block/21733759). These blocks include in total of 111373 transactions. For all these transactions, we perform execution tracing to obtain the actual hash function usage. The total gas used in the transactions is 10135367525.
@@ -286,7 +288,7 @@ The case of Blake2f is most complicated as it doesn't expose the full hash funct
 
 We weren't able to run end-to-end prover for this block, the GPU prover ran out of memory during the compress step. However, when we look at only `prove_core` step, then it took **5564000ms**, leading to **5** gas proven per ms. We can compare it to the average-block `prove_core` time which is 93gas per ms (5%, 10%, 90%, 95% percentiles 77, 83, 105, 111 correspondingly).
 
-# Recommendations
+# Conclusions
 
 Considering the benchmarking results, we see that Keccak opcode and SHA2 precompile are somewhat underpriced. RipeMD160 precompile seems to be overpriced. Finally, the Blake2f precompile seems to be significantly underpriced.
 
@@ -296,11 +298,16 @@ For RipeMD-160, the already proposed keeping the gas price seems on line with th
 
 For Blake2f, the minimal conservative recommendation is to increase the per-round dynamic gas cost by at least 19 times (`ceil(93/5)`). Additionally, the precompile should limit the maximum number of rounds allowed to avoid denial of service attacks when the Ethereum gas limits are increased. In practice, the hash functions using Blake2f use 12 internal rounds.
 
+| Parameter          | Previous value | Updated proposal |
+|--------------------|----------------|------------------|
+| KECCAK_BASE_COST   | 30             | 90               |
+| KECCAK_WORD_COST   | 6              | 18               |
+| SHA256_BASE_COST   | 60             | 180              |
+| SHA256_WORD_COST   | 12             | 36               |
+| RIPEMD_BASE_COST   | 600            | 600              |
+| RIPEMD_WORD_COST   | 120            | 120              |
+| BLAKE2_GFROUND     | 1              | 19               |
+
 As already mentioned, Keccak opcode should compute the dynamic gas cost based on the number of actual permutation calls for hashing the full input. Currently the dynamic cost increases after every 32 bytes, even if the number of actual permutations is the same. Better aligning the cost with number of permutations would allow using Keccak opcode more efficiently, for example when it is used for set membership, where it would be possible to use wider trees.
 
-When looking at proving costs, there is indication that precompile call for KZG proof verification may be underpriced. This also applies for EIP-2537 as it requires group membership checks which are expensive to prove compared to the gas cost.
-
-.. TODO:
-- https://github.com/imapp-pl/gas-cost-estimator/blob/master/docs/gas-schedule-proposal.md
-- https://eips.ethereum.org/EIPS/eip-7797#sha-256-preprocessing
-- add links
+When looking at proving costs, there is indication that precompile call for KZG proof verification may be underpriced. This also applies for [EIP-2537](https://eips.ethereum.org/EIPS/eip-2537) as it requires group membership checks even for which are expensive to prove compared to the gas cost of the operation itself.
