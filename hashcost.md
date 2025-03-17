@@ -183,9 +183,7 @@ With trial-and-error, the number of rounds for different inputs is:
 | **100000**  | **1589**    | 1169579  | 29990437 |
 | 50000   | 3164    | 1164437  | 29994554 |
 
-
-
-.. TODO: the proving times etc
+For this block, the end-to-end proving time is **1254673ms**, resulting in **23** gas proven per millisecond.
 
 ### SHA2-256
 
@@ -216,7 +214,7 @@ The number of round function calls for different inputs:
 | **200000**  | **397**     | 1241023  | 29995760 |
 | 100000  | 793     | 1239460  | 29994972 |
 
-.. TODO: the proving times etc
+The proving time for such a block is **1297880ms**, leading to **23** gas per millisecond.
 
 ### RipeMD-160
 
@@ -249,7 +247,7 @@ As there are no RipeMD-160 zkVM precompiles, then we measured the parameters whi
 
 With padding, this corresponds to in total of 123635 rounds.
 
-.. TODO: the proving times etc
+The proving time for this block is **201890ms**, leading to **148** gas per millisecond.
 
 ### Blake2f
 
@@ -284,12 +282,25 @@ function callBlake(uint32 rounds) public returns (bytes32[2] memory) {
 }
 ```
 
-The case of Blake2f is most complicated as it doesn't expose the full hash function, but rather only the configurable round function. One of the parameters which can be provided to the precompile is the number of internal rounds on 4 bytes. For the Blake2b the number of rounds used is 12, but in the precompile we could potentially define it as high as 4294967295. To fit inside the 30M gas limit, we used the value 29000000 which results in using 29025975 gas. As SP1 doesn't have Blake2f as a zkVM precompile, then we measured the number of cycles and it is 17322114713.
+The case of Blake2f is most complicated as it doesn't expose the full hash function, but rather only the configurable round function. One of the parameters which can be provided to the precompile is the number of internal rounds on 4 bytes. For the Blake2b the number of rounds used is 12, but in the precompile we could potentially define it as high as 4294967295. To fit inside the 30M gas limit, we used the value **29000000** which results in using **29025975** gas. As SP1 doesn't have Blake2f as a zkVM precompile, then we measured the number of cycles and it is 17322114713.
 
-.. TODO: the proving times etc
+We weren't able to run end-to-end prover for this block, the GPU prover ran out of memory during the compress step. However, when we look at only `prove_core` step, then it took **5564000ms**, leading to **5** gas proven per ms. We can compare it to the average-block `prove_core` time which is 93gas per ms (5%, 10%, 90%, 95% percentiles 77, 83, 105, 111 correspondingly).
 
+# Recommendations
+
+Considering the benchmarking results, we see that Keccak opcode and SHA2 precompile are somewhat underpriced. RipeMD160 precompile seems to be overpriced. Finally, the Blake2f precompile seems to be significantly underpriced.
+
+For Keccak and SHA2, they are about 2.78x underpriced compared to the proving cost. A conservative recommendation is to increase the dynamic gas cost for both of them by 3 (`ceil(64/23)`) times and larger coefficient can be considered to account for less-efficient zkVMs. The static gas cost can be smaller, as for zero-length inputs it would be possible to hardcode the hashing result and avoid proving the hash. For non-zero-length inputs the dynamic cost would account for the price increase already.
+
+For RipeMD-160, the already proposed keeping the gas price seems on line with the actual proving time.
+
+For Blake2f, the minimal conservative recommendation is to increase the per-round dynamic gas cost by at least 19 times (`ceil(93/5)`). Additionally, the precompile should limit the maximum number of rounds allowed to avoid denial of service attacks when the Ethereum gas limits are increased. In practice, the hash functions using Blake2f use 12 internal rounds.
+
+As already mentioned, Keccak opcode should compute the dynamic gas cost based on the number of actual permutation calls for hashing the full input. Currently the dynamic cost increases after every 32 bytes, even if the number of actual permutations is the same. Better aligning the cost with number of permutations would allow using Keccak opcode more efficiently, for example when it is used for set membership, where it would be possible to use wider trees.
+
+When looking at proving costs, there is indication that precompile call for KZG proof verification may be underpriced. This also applies for EIP-2537 as it requires group membership checks which are expensive to prove compared to the gas cost.
 
 .. TODO:
-- how it is measured - right now we count the 32-byte words, but this doesn't apply to keccak which operates on 136 bytes per round
 - https://github.com/imapp-pl/gas-cost-estimator/blob/master/docs/gas-schedule-proposal.md
 - https://eips.ethereum.org/EIPS/eip-7797#sha-256-preprocessing
+- add links
