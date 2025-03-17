@@ -1,0 +1,5 @@
+"hash function","static gas used","dynamic gas used","total gas used"
+keccak,41922120,18177390,60099510
+ripemd160,600,120,720
+sha256,315900,201336,517236
+total,42238620,18378846,60617466

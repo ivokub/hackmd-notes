@@ -1,0 +1,5 @@
+"all hash","total gas used","total proving time","gas proven per ms"
+keccak256,29990437,1254673,23
+sha256,29995760,1297880,23
+ripemd160,29966032,201890,148
+blake2f,29025975,5564000,5
