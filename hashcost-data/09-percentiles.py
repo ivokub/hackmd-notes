@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Load the CSV data
-file_path = '09-unconstrained-keccak.csv'
+file_path = '09-unconstrained_keccak.csv'
 data = pd.read_csv(file_path)
 
 # Compute statistics

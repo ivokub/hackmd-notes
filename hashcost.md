@@ -124,7 +124,7 @@ The proving performance percentiles are:
 | 0.9        | 72                |
 | 0.95       | 76                |
 
-![Proving Performance Percentiles](hashcost-data/08-percentiles.png)
+![Proving Performance Percentiles](hashcost-data/08-percentiles_all.png)
 
 The outlier blocks with very slow proving speed seem to call KZG verification precompile at `0x0a` or being small blocks. On the other hand, blocks which are very fast to prove seem to contain multiple contract creation transactions.
 
