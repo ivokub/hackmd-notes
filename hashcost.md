@@ -32,7 +32,7 @@ Gas used for hash functions is correspondingly:
 | blake2f       | 0          | 0           | 0        |
 | total         | 42238620   | 18378846    | 60617466 |
 
-Top 10 hash function gas usage per target and hash function:
+Top 10 hash function gas usage per target ([all results](https://github.com/ivokub/hackmd-notes/blob/hash/hashcost-data/04-hash_used_receipent.csv)):
 | receipent                                  | hash gas used | total gas used |
 |--------------------------------------------|---------------|----------------|
 | 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D | 1029936       | 155297860      |
@@ -46,7 +46,7 @@ Top 10 hash function gas usage per target and hash function:
 | 0x0000000000001fF3684f28c67538d4D072C22734 | 3563622       | 421146498      |
 | 0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD | 5947818       | 672308283      |
 
-Top 10 hash function gas used per sender and hash function:
+Top 10 hash function gas used per sender ([all results](https://github.com/ivokub/hackmd-notes/blob/hash/hashcost-data/05-hash_used_sender.csv)):
 | sender                                     | hash gas used | total gas used |
 |--------------------------------------------|---------------|----------------|
 | 0xe93685f3bBA03016F02bD1828BaDD6195988D950 | 277272        | 25376196       |
@@ -60,7 +60,7 @@ Top 10 hash function gas used per sender and hash function:
 | 0x7830c87C02e56AFf27FA8Ab1241711331FA86F43 | 721230        | 121336249      |
 | 0xf7Bd34Dd44B92fB2f9C3D2e31aAAd06570a853A6 | 826302        | 33772783       |
 
-Top 10 transactions per absolute gas usage:
+Top 10 transactions per absolute gas usage ([all results](https://raw.githubusercontent.com/ivokub/hackmd-notes/refs/heads/hash/hashcost-data/06-max_hash_usage_absolute.csv)):
 | transaction                                                        | hash gas abs        | hash gas relative   | total gas|
 |--------------------------------------------------------------------|---------------------|---------------------|----------|
 | 0xcf37dcc1af302229b7d677137f90934ad4282406af319ccdfd2d23ede7bff610 | 106470              | 1.02988544350222    | 10338043 |
@@ -74,7 +74,7 @@ Top 10 transactions per absolute gas usage:
 | 0x625048d6a13dbd24ed01f39e68f463bf19b7dbdddbe3a38ab5c13b427d546e7d | 268764              | 3.45597116346426    | 7776801  |
 | 0xa49fe3c75eec28cd1096423d2d4ec4006fe7ecc62c2b43432d9a13f215f41405 | 371466              | 2.40051429344686    | 15474434 |
 
-Top 10 transactions per relative gas usage:
+Top 10 transactions per relative gas usage ([all results](https://raw.githubusercontent.com/ivokub/hackmd-notes/refs/heads/hash/hashcost-data/07-max_hash_usage_relative.csv)):
 | transaction                                                        | hash gas abs        | hash gas relative   | total gas|
 |--------------------------------------------------------------------|---------------------|---------------------|----------|
 | 0xf7021f65fa000a6e1fa4b78c23a2de5901de291358c9faa3bb8941eff499dedb | 195678              | 4.75165731769505    | 4118100  |
@@ -115,7 +115,7 @@ For SP1, the prover reports the following time statistics:
 
 During benchmarking, we measured the full end-to-end running time. We normalize the running time against the total gas used in a block, as this allowed to compare the proving time over blocks with different gas usage.
 
-The proving performance percentiles are:
+The proving performance percentiles are ([all results](https://github.com/ivokub/hackmd-notes/blob/hash/hashcost-data/08-proving_speed.csv)/[all results for `prove_core`](https://github.com/ivokub/hackmd-notes/blob/hash/hashcost-data/08-proving_speed_prove_core.csv)):
 | percentile | gas proven per ms |
 |------------|-------------------|
 | 0.05       | 51                |
@@ -124,7 +124,7 @@ The proving performance percentiles are:
 | 0.9        | 72                |
 | 0.95       | 76                |
 
-![Proving Performance Percentiles](hashcost-data/08-percentiles_all.png)
+![Proving Performance Percentiles](https://raw.githubusercontent.com/ivokub/hackmd-notes/hash/hashcost-data/08-percentiles_all.png)
 
 The outlier blocks with very slow proving speed seem to call KZG verification precompile at `0x0a` or being small blocks. On the other hand, blocks which are very fast to prove seem to contain multiple contract creation transactions.
 
@@ -134,7 +134,7 @@ Our first approach of estimating the hash function proving cost was to compare t
 
 To overcome this, we also patched the `revm-interpreter` crate to only use `sha3-unconstrained` crate for the Keccak opcode. The patched crate is available at [`ivokub/rsp`](https://github.com/ivokub/rsp/blob/reth-1.2.0-unconstrained/vendor/revm-interpreter/src/instructions/system.rs#L19-L30).
 
-The overhead of Keccak proving in average blocks are:
+The overhead of Keccak proving in average blocks are ([all results](https://github.com/ivokub/hackmd-notes/blob/hash/hashcost-data/09-unconstrained_keccak.csv)):
 | percentile | proving overhead |
 |------------|------------------|
 | 0.05       | -0.683446        |
@@ -143,7 +143,7 @@ The overhead of Keccak proving in average blocks are:
 | 0.9        | 1.206214         |
 | 0.95       | 1.339756         |
 
-![Hash proving overhead](hashcost-data/09-percentiles.png)
+![Hash proving overhead](https://raw.githubusercontent.com/ivokub/hackmd-notes/hash/hashcost-data/09-percentiles.png)
 
 We see that the relative overhead for proving Keccak opcode for an average block is about 0.43%, but the result is not significant. There are also blocks when the proving speed seems to be faster when Keccak opcodes are proven. This seems to be due to small number of Keccak opcodes in average block and that the GPUs are not fully utilized (average utilization 75.8%) during proving. Further benchmarking could give more precise results, but it would still be very small to make any precise conclusions on the opcode mispricing, so we didn't proceed with this approach.
 
@@ -179,11 +179,11 @@ function callKeccak(uint32 nbTimes, uint32 nbBytes) public returns (bytes32) {
 We also tested with writing the implementation directly in bytecode, but the gas cost reduction was small compared to a full block and proceeded with Solidity implementation for ease of bechmarking.
 
 With trial-and-error, the number of rounds for different inputs is:
-| nbBytes | nbTimes | nbRounds |    gas   |
-|---------|---------|----------|----------|
-| 300000  | 528     | 1164852  | 29970510 |
-| **100000**  | **1589**    | 1169579  | 29990437 |
-| 50000   | 3164    | 1164437  | 29994554 |
+| nbBytes    | nbTimes  | nbRounds | gas      |
+|------------|----------|----------|----------|
+| 300000     | 528      | 1164852  | 29970510 |
+| **100000** | **1589** | 1169579  | 29990437 |
+| 50000      | 3164     | 1164437  | 29994554 |
 
 For this block, the end-to-end proving time is **1254673ms**, resulting in **23** gas proven per millisecond.
 
@@ -210,11 +210,11 @@ function callSha2(uint32 nbTimes, uint32 nbBytes) public returns (bytes32) {
 ```
 
 The number of round function calls for different inputs:
-| nbBytes | nbTimes | nbRounds |    gas   |
-|---------|---------|----------|----------|
-| 300000  | 264     | 1237633  | 29990838 |
-| **200000**  | **397**     | 1241023  | 29995760 |
-| 100000  | 793     | 1239460  | 29994972 |
+| nbBytes    | nbTimes | nbRounds |    gas   |
+|------------|---------|----------|----------|
+| 300000     | 264     | 1237633  | 29990838 |
+| **200000** | **397** | 1241023  | 29995760 |
+| 100000     | 793     | 1239460  | 29994972 |
 
 The proving time for such a block is **1297880ms**, leading to **23** gas per millisecond.
 
@@ -241,11 +241,11 @@ function callRipemd(uint32 nbTimes, uint32 nbBytes) public returns (bytes32) {
 ```
 
 As there are no RipeMD-160 zkVM precompiles, then we measured the parameters which would maximize the total number of cycles to be proven inside zkVM:
-| nbBytes | nbTimes |    nbRounds    |    gas   |
-|---------|---------|----------------|----------|
-| 100000  | 79      | 367166790      | 29738766 |
-| 50000   | 159     | 369876668      | 29980861 |
-| **20000**   | **395**     | 370096560      | 29980861 |
+| nbBytes   | nbTimes  | nbRounds  | gas      |
+|-----------|----------|-----------|----------|
+| 100000    | 79       | 367166790 | 29738766 |
+| 50000     | 159      | 369876668 | 29980861 |
+| **20000** | **395**  | 370096560 | 29980861 |
 
 With padding, this corresponds to in total of 123635 rounds.
 
