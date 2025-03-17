@@ -309,5 +309,3 @@ For Blake2f, the minimal conservative recommendation is to increase the per-roun
 | BLAKE2_GFROUND     | 1              | 19               |
 
 As already mentioned, Keccak opcode should compute the dynamic gas cost based on the number of actual permutation calls for hashing the full input. Currently the dynamic cost increases after every 32 bytes, even if the number of actual permutations is the same. Better aligning the cost with number of permutations would allow using Keccak opcode more efficiently, for example when it is used for set membership, where it would be possible to use wider trees.
-
-When looking at proving costs, there is indication that precompile call for KZG proof verification may be underpriced. This also applies for [EIP-2537](https://eips.ethereum.org/EIPS/eip-2537) as it requires expensive group membership checks even for otherwise cheap group operations (G1/G2 addition).
